@@ -8,8 +8,9 @@ var ProyectoSchema = Schema({
     name : String,
     description :String,
     author : String,
-    langs : [String],
+    langs : String,
     year : Number,
+    img : String
 })
 
 /* "name" : "Blog",
