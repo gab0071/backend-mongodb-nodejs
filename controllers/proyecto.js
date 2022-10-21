@@ -1,6 +1,7 @@
 'use strict'
 
 var Proyecto = require('../models/proyecto')
+var fs = require('fs')
 
 var controller = {
     home: function (req, res) {
@@ -76,21 +77,20 @@ var controller = {
     // Devolver listados de proyectos
     getListProyecto: function (req, res) {
         // el sort nos ordena de mayor a menor nuestros proyectos!
-        Proyecto.find({})
-            .sort(-year)
-            .exec((err, projects) => {
-                if (err)
-                    return res
-                        .status(500)
-                        .send({ msg: 'error al delvolver los datos' })
+        //.sort(-year)
+        Proyecto.find({}).exec((err, projects) => {
+            if (err)
+                return res
+                    .status(500)
+                    .send({ msg: 'error al delvolver los datos' })
 
-                if (!projects)
-                    return res
-                        .status(404)
-                        .send({ msg: 'no se encuentra los projects' })
+            if (!projects)
+                return res
+                    .status(404)
+                    .send({ msg: 'no se encuentra los projects' })
 
-                return res.status(200).send({ projects })
-            })
+            return res.status(200).send({ projects })
+        })
     },
 
     // actualizar datos del proyecto (put)
@@ -120,16 +120,73 @@ var controller = {
     deleteProyecto: function (req, res) {
         var proyectoId = req.params.id
 
-        Proyecto.findByIdAndDelete(proyectoId, { new: true }, (err, projectDeleted) => {
-            if (err) return res.status(500).send({ msg: 'error al eliminar' })
+        Proyecto.findByIdAndDelete(
+            proyectoId,
+            { new: true },
+            (err, projectDeleted) => {
+                if (err)
+                    return res.status(500).send({ msg: 'error al eliminar' })
 
-            if (!projectDeleted)
-                return res.status(404).send({
-                    msg: 'no se encuentra el proyeto para eliminar',
+                if (!projectDeleted)
+                    return res.status(404).send({
+                        msg: 'no se encuentra el proyeto para eliminar',
+                    })
+
+                return res.status(200).send({ proyecto: projectDeleted })
+            }
+        )
+    },
+
+    // subir imagenes (post)
+    uploadImage: function (req, res) {
+        var proyectoId = req.params.id
+        var fileName = 'Imagen no subida...'
+
+        if (req.files) {
+            var filePath = req.files.image.path
+            var fileSplit = filePath.split('\\')
+            var fileName = fileSplit[1]
+            var extSplit = fileName.split('.')
+            var fileExt = extSplit[1]
+
+            if (
+                fileExt == 'jpg' ||
+                fileExt == 'png' ||
+                fileExt == 'jpeg' ||
+                fileExt == 'gif'
+            ) {
+                Proyecto.findByIdAndUpdate(
+                    proyectoId,
+                    { img: fileName },
+                    { new: true },
+                    (err, projectUpdated) => {
+                        if (err)
+                            return res
+                                .status(500)
+                                .send({ mensaje: 'la imagen no se ha subido' })
+
+                        if (!projectUpdated)
+                            return res
+                                .status(404)
+                                .send({ mensaje: 'El proyecto no existe' })
+
+                        return res.status(200).send({
+                            proyecto: projectUpdated,
+                        })
+                    }
+                )
+            } else {
+                fs.unlink(filePath, (err)=>{
+                    return res.status(200).send({
+                        msg: 'la extension no es valida'
+                    })
                 })
-
-            return res.status(200).send({ proyecto: projectDeleted })
-        })
+            }
+        } else {
+            return res.status(200).send({
+                msg: fileName,
+            })
+        }
     },
 }
 
