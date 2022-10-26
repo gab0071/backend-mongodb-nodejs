@@ -16,6 +16,7 @@ router.get('/home', ProyectoController.home)
 // :id? => el ? significa que es opcional
 router.get('/proyecto/:id?', ProyectoController.getProyectos)
 router.get('/proyectos', ProyectoController.getListProyecto)
+router.get('/get-image/:image', ProyectoController.getImageFile)
 
 router.post('/test', ProyectoController.test)
 router.post('/save-proyecto', ProyectoController.saveProyecto)
